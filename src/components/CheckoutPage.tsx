@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, CartItem } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Check } from 'lucide-react';
+import { logger } from '../utils/logger'; // or './utils/logger' depending on your file location
 
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -32,7 +33,7 @@ export default function CheckoutPage() {
       if (error) throw error;
       setCartItems(data || []);
     } catch (error) {
-      console.error('Error loading cart:', error);
+      logger.error('Error loading cart:', error);
     } finally {
       setLoading(false);
     }
@@ -69,7 +70,7 @@ export default function CheckoutPage() {
       setOrderId(order.id);
       setOrderPlaced(true);
     } catch (error) {
-      console.error('Error placing order:', error);
+      logger.error('Error placing order:', error);
       alert('Failed to place order. Please try again.');
     } finally {
       setProcessing(false);

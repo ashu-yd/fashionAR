@@ -3,6 +3,7 @@ import { supabase, Product } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ShoppingBag, ShoppingCart, LogOut, Glasses } from 'lucide-react';
 import ProductCard from './ProductCard';
+import { logger } from '../utils/logger'; // or './utils/logger' depending on your file location
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -24,7 +25,7 @@ export default function HomePage() {
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
-      console.error('Error loading products:', error);
+      logger.error('Error loading products:', error);
     } finally {
       setLoading(false);
     }
@@ -40,7 +41,7 @@ export default function HomePage() {
     try {
       await signOut();
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
     }
   };
 

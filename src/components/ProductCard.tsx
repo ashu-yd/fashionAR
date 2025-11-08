@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Product, supabase } from '../lib/supabase';
 import { ShoppingCart, Glasses, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { logger } from '../utils/logger'; // or './utils/logger' depending on your file location
 
 type ProductCardProps = {
   product: Product;
@@ -42,7 +43,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      logger.error('Error adding to cart:', error);
     } finally {
       setAdding(false);
     }

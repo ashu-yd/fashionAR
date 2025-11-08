@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase, Product } from '../lib/supabase';
 import { ArrowLeft, Info } from 'lucide-react';
-
+import { logger } from '../utils/logger'; // or './utils/logger' depending on your file location
 type TryOnPageProps = {
   productId: string;
 };
@@ -22,12 +22,12 @@ export default function TryOnPage({ productId }: TryOnPageProps) {
     
     if (modelViewer) {
       const handleLoad = () => {
-        console.log('Model loaded successfully');
+        logger.log('Model loaded successfully');
         setModelError(false);
       };
       
       const handleError = (event: any) => {
-        console.error('Model loading error:', event);
+        logger.error('Model loading error:', event);
         setModelError(true);
       };
 
@@ -50,10 +50,10 @@ export default function TryOnPage({ productId }: TryOnPageProps) {
         .maybeSingle();
 
       if (error) throw error;
-      console.log('Product loaded:', data);
+      logger.log('Product loaded:', data);
       setProduct(data);
     } catch (error) {
-      console.error('Error loading product:', error);
+      logger.error('Error loading product:', error);
     } finally {
       setLoading(false);
     }

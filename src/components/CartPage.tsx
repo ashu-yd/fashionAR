@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, CartItem } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingCart } from 'lucide-react';
+import { logger } from '../utils/logger'; // or './utils/logger' depending on your file location
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -30,7 +31,7 @@ export default function CartPage() {
       if (error) throw error;
       setCartItems(data || []);
     } catch (error) {
-      console.error('Error loading cart:', error);
+      logger.error('Error loading cart:', error);
     } finally {
       setLoading(false);
     }
@@ -48,7 +49,7 @@ export default function CartPage() {
       if (error) throw error;
       await loadCart();
     } catch (error) {
-      console.error('Error updating quantity:', error);
+      logger.error('Error updating quantity:', error);
     }
   };
 
@@ -62,7 +63,7 @@ export default function CartPage() {
       if (error) throw error;
       await loadCart();
     } catch (error) {
-      console.error('Error removing item:', error);
+      logger.error('Error removing item:', error);
     }
   };
 
