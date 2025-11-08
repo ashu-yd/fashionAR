@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase, Product } from '../lib/supabase';
 import { ArrowLeft, Info } from 'lucide-react';
 
@@ -9,10 +9,37 @@ type TryOnPageProps = {
 export default function TryOnPage({ productId }: TryOnPageProps) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [modelError, setModelError] = useState(false);
+  const modelViewerRef = useRef<any>(null);
 
   useEffect(() => {
     loadProduct();
   }, [productId]);
+
+  useEffect(() => {
+    // Listen for model-viewer events
+    const modelViewer = modelViewerRef.current;
+    
+    if (modelViewer) {
+      const handleLoad = () => {
+        console.log('Model loaded successfully');
+        setModelError(false);
+      };
+      
+      const handleError = (event: any) => {
+        console.error('Model loading error:', event);
+        setModelError(true);
+      };
+
+      modelViewer.addEventListener('load', handleLoad);
+      modelViewer.addEventListener('error', handleError);
+
+      return () => {
+        modelViewer.removeEventListener('load', handleLoad);
+        modelViewer.removeEventListener('error', handleError);
+      };
+    }
+  }, [product]);
 
   const loadProduct = async () => {
     try {
@@ -23,6 +50,7 @@ export default function TryOnPage({ productId }: TryOnPageProps) {
         .maybeSingle();
 
       if (error) throw error;
+      console.log('Product loaded:', data);
       setProduct(data);
     } catch (error) {
       console.error('Error loading product:', error);
@@ -59,6 +87,10 @@ export default function TryOnPage({ productId }: TryOnPageProps) {
     );
   }
 
+  // Use a test model if the product model_url is not working
+  const testModelUrl = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
+  const modelUrl = product.model_url || testModelUrl;
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
       <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
@@ -83,28 +115,62 @@ export default function TryOnPage({ productId }: TryOnPageProps) {
       </header>
 
       <div className="flex-1 relative">
+        {modelError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 z-50">
+            <div className="text-center text-white p-6">
+              <h3 className="text-xl font-bold mb-2">Model Loading Error</h3>
+              <p className="text-slate-300 mb-4">
+                Could not load the 3D model. Check console for details.
+              </p>
+              <p className="text-sm text-slate-400 mb-4">
+                Model URL: {modelUrl}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-white text-slate-900 rounded-lg font-medium"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
         <model-viewer
-          src={product.model_url}
+          ref={modelViewerRef}
+          src={modelUrl}
           alt={product.name}
           ar
           ar-modes="webxr scene-viewer quick-look"
           camera-controls
           auto-rotate
           shadow-intensity="1"
+          loading="eager"
+          reveal="auto"
           style={{
             width: '100%',
             height: '100%',
-            backgroundColor: 'transparent',
+            backgroundColor: '#1e293b',
+            minHeight: '500px'
           }}
         >
-          <div slot="ar-button" className="ar-button-custom">
-            <button className="absolute bottom-8 left-1/2 transform -translate-x-1/2 px-8 py-4 bg-white text-slate-900 rounded-full font-semibold shadow-2xl hover:scale-105 transition-transform">
-              View in Your Space
-            </button>
+          {/* AR Button - Let model-viewer create its default button */}
+          <button 
+            slot="ar-button"
+            className="absolute bottom-24 left-1/2 transform -translate-x-1/2 px-8 py-4 bg-white text-slate-900 rounded-full font-semibold shadow-2xl hover:scale-105 transition-transform z-10"
+          >
+            👋 View in Your Space
+          </button>
+
+          {/* Progress Bar */}
+          <div 
+            slot="progress-bar" 
+            className="absolute bottom-0 left-0 right-0 h-1 bg-slate-700"
+          >
+            <div className="h-full bg-blue-500 transition-all" style={{width: '0%'}}></div>
           </div>
         </model-viewer>
 
-        <div className="absolute top-4 left-4 right-4 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 text-white">
+        <div className="absolute top-4 left-4 right-4 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 text-white z-20">
           <div className="flex items-start space-x-3">
             <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm">
@@ -119,7 +185,7 @@ export default function TryOnPage({ productId }: TryOnPageProps) {
           </div>
         </div>
 
-        <div className="absolute bottom-4 left-4 right-4 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 text-white">
+        <div className="absolute bottom-4 left-4 right-4 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 text-white z-20">
           <h3 className="font-semibold mb-2">{product.name}</h3>
           <p className="text-sm text-slate-300 mb-3">{product.description}</p>
           <div className="flex items-center justify-between">
